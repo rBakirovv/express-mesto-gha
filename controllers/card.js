@@ -1,9 +1,15 @@
 const Card = require('../models/card');
 
+const {
+  ERR_BAD_REQUEST,
+  ERR_NOT_FOUND,
+  ERR_DEFAULT,
+} = require('../errors/errors');
+
 const getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(() => res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' }));
 };
 
 const createCard = (req, res) => {
@@ -11,15 +17,33 @@ const createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      console.log(err);
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(ERR_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные в методы создания карточки',
+        });
+      }
+      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
 const deleteUser = (req, res) => {
   Card.findByIdAndDelete(req.params.cardId)
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((card) => res.send({ card }))
     .catch((err) => {
-      console.log(err);
+      if (err.name === 'CastError') {
+        res.status(ERR_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные',
+        });
+      }
+      if (err.name === 'NotFound') {
+        res.status(ERR_NOT_FOUND).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -29,8 +53,23 @@ const likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((card) => res.send(card))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(ERR_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные',
+        });
+      }
+      if (err.name === 'NotFound') {
+        res.status(ERR_NOT_FOUND).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
+    });
 };
 
 const dislikeCard = (req, res) => {
@@ -39,8 +78,23 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
     .then((card) => res.send(card))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
+        res.status(ERR_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные',
+        });
+      }
+      if (err.name === 'NotFound') {
+        res.status(ERR_NOT_FOUND).send({
+          message: 'Карточка не найдена',
+        });
+      }
+      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
+    });
 };
 
 module.exports = {
