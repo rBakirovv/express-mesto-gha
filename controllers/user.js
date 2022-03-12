@@ -38,7 +38,7 @@ const createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
+      if (err.name === 'ValidationError') {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы создания пользователя',
         });
@@ -58,17 +58,17 @@ const updateProfile = (req, res) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError' || err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы обновления профиля',
         });
-      }
-      if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(ERR_NOT_FOUND).send({
           message: 'Пользователь не найден',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -87,8 +87,7 @@ const updateAvatar = (req, res) => {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы обновления аватара',
         });
-      }
-      if (err.name === 'NotFound') {
+      } else if (err.message === 'NotFound') {
         res.status(ERR_NOT_FOUND).send({
           message: 'Пользователь не найден',
         });
