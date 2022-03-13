@@ -21,8 +21,9 @@ const createCard = (req, res) => {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы создания карточки',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -41,8 +42,9 @@ const deleteUser = (req, res) => {
         res.status(ERR_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -65,8 +67,9 @@ const likeCard = (req, res) => {
         res.status(ERR_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -89,8 +92,9 @@ const dislikeCard = (req, res) => {
         res.status(ERR_NOT_FOUND).send({
           message: 'Карточка не найдена',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
