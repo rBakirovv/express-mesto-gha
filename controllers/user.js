@@ -24,12 +24,13 @@ const findUser = (req, res) => {
           message: 'Переданы некорректные данные в методы создания пользователя',
         });
       }
-      if (err.name === 'NotFound') {
+      if (err.message === 'NotFound') {
         res.status(ERR_NOT_FOUND).send({
           message: 'Пользователь не найден',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -42,8 +43,9 @@ const createUser = (req, res) => {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы создания пользователя',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
@@ -58,7 +60,7 @@ const updateProfile = (req, res) => {
     })
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы обновления профиля',
         });
@@ -91,8 +93,9 @@ const updateAvatar = (req, res) => {
         res.status(ERR_NOT_FOUND).send({
           message: 'Пользователь не найден',
         });
+      } else {
+        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
       }
-      res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
     });
 };
 
