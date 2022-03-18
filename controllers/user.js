@@ -1,4 +1,7 @@
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
+
+const SALT_ROUNDS = 10;
 
 const {
   ERR_BAD_REQUEST,
@@ -35,9 +38,29 @@ const findUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+
+  bcrypt
+    .hash(password, SALT_ROUNDS)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => res.send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      _id: user._id,
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERR_BAD_REQUEST).send({
