@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const ErrorConflict = require('../errors/ErrorConflict');
 
 const SALT_ROUNDS = 10;
 
@@ -37,7 +38,7 @@ const findUser = (req, res) => {
     });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const {
     name,
     about,
@@ -46,8 +47,14 @@ const createUser = (req, res) => {
     password,
   } = req.body;
 
-  bcrypt
-    .hash(password, SALT_ROUNDS)
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        throw new ErrorConflict('Пользователь с таким e-mail уже существует');
+      }
+
+      return bcrypt.hash(password, SALT_ROUNDS);
+    })
     .then((hash) => User.create({
       name,
       about,
@@ -67,7 +74,7 @@ const createUser = (req, res) => {
           message: 'Переданы некорректные данные в методы создания пользователя',
         });
       } else {
-        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
+        next(err);
       }
     });
 };
