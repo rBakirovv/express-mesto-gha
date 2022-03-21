@@ -1,6 +1,8 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const ErrorConflict = require('../errors/ErrorConflict');
+const Unauthorized = require('../errors/Unauthorized');
 
 const SALT_ROUNDS = 10;
 
@@ -46,10 +48,10 @@ const createUser = (req, res, next) => {
     password,
   } = req.body;
 
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (user) {
-        throw new ErrorConflict('Пользователь с таким e-mail уже существует');
+        throw new ErrorConflict('Пользователь с таким email уже существует');
       }
 
       return bcrypt.hash(password, SALT_ROUNDS);
@@ -68,13 +70,37 @@ const createUser = (req, res, next) => {
       _id: user._id,
     }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError' || err.name === 'ValidationError') {
         res.status(ERR_BAD_REQUEST).send({
           message: 'Переданы некорректные данные в методы создания пользователя',
         });
       } else {
         next(err);
       }
+    });
+};
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new Unauthorized('Неккоректный email или пароль');
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    .then((isVaid) => {
+      if (!isVaid) {
+        throw new Unauthorized('Неккоректный email или пароль');
+      } else {
+        const token = jwt.sign({ _id: isVaid._id }, 'some-secret-key', {
+          expiresIn: '7d',
+        });
+        res.send({ jwt: token });
+      }
+    })
+    .catch((err) => {
+      next(err);
     });
 };
 
@@ -131,6 +157,7 @@ const updateAvatar = (req, res, next) => {
 module.exports = {
   getUsers,
   createUser,
+  login,
   findUser,
   updateProfile,
   updateAvatar,

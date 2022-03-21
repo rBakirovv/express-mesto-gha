@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const user = require('./routes/user');
 const card = require('./routes/card');
+const { login, createUser } = require('./controllers/user');
 const errorHandler = require('./middlewares/errorHandler');
 
 const { PORT = 3000 } = process.env;
@@ -24,6 +25,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use('/', user);
 app.use('/', card);
+app.post('/signin', login);
+app.post('/signup', createUser);
 app.use(errorHandler);
 
 app.use((req, res) => {
