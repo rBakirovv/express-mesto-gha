@@ -7,16 +7,15 @@ const SALT_ROUNDS = 10;
 const {
   ERR_BAD_REQUEST,
   ERR_NOT_FOUND,
-  ERR_DEFAULT,
 } = require('../errors/errors');
 
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' }));
+    .catch((err) => next(err));
 };
 
-const findUser = (req, res) => {
+const findUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
       throw new Error('NotFound');
@@ -33,7 +32,7 @@ const findUser = (req, res) => {
           message: 'Пользователь не найден',
         });
       } else {
-        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
+        next(err);
       }
     });
 };
@@ -79,7 +78,7 @@ const createUser = (req, res, next) => {
     });
 };
 
-const updateProfile = (req, res) => {
+const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
@@ -99,12 +98,12 @@ const updateProfile = (req, res) => {
           message: 'Пользователь не найден',
         });
       } else {
-        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
+        next(err);
       }
     });
 };
 
-const updateAvatar = (req, res) => {
+const updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
@@ -124,7 +123,7 @@ const updateAvatar = (req, res) => {
           message: 'Пользователь не найден',
         });
       } else {
-        res.status(ERR_DEFAULT).send({ message: 'Произошла ошибка' });
+        next(err);
       }
     });
 };
