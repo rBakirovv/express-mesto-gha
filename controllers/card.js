@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const Forbidden = require('../errors/Forbidden');
 
 const {
   ERR_BAD_REQUEST,
@@ -27,12 +28,20 @@ const createCard = (req, res) => {
     });
 };
 
-const deleteUser = (req, res) => {
-  Card.findByIdAndDelete(req.params.cardId)
+const deleteUser = (req, res, next) => {
+  Card.findById(req.params.id)
     .orFail(() => {
       throw new Error('NotFound');
     })
-    .then((card) => res.send({ card }))
+    .then((owner) => {
+      if (owner.toString() === req.user._id) {
+        Card.findByIdAndRemove(req.params.id).then((card) => {
+          res.send(card);
+        });
+      } else {
+        next(new Forbidden('Необходима авторизация'));
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(ERR_BAD_REQUEST).send({

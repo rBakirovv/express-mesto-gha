@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const ErrorConflict = require('../errors/ErrorConflict');
 const Unauthorized = require('../errors/Unauthorized');
+const ValidationError = require('../errors/ValidationError');
 
 const SALT_ROUNDS = 10;
 
@@ -17,6 +18,28 @@ const getUsers = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new Error('NotFound');
+    })
+    .then((user) => res.send({ user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(ERR_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные',
+        });
+      }
+      if (err.message === 'NotFound') {
+        res.status(ERR_NOT_FOUND).send({
+          message: 'Пользователь не найден',
+        });
+      } else {
+        next(err);
+      }
+    });
+};
+
 const findUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
@@ -26,7 +49,7 @@ const findUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(ERR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные в методы создания пользователя',
+          message: 'Переданы некорректные данные',
         });
       }
       if (err.message === 'NotFound') {
@@ -47,6 +70,10 @@ const createUser = (req, res, next) => {
     email,
     password,
   } = req.body;
+
+  if (!email || !password) {
+    next(new ValidationError('Неккоректный email или пароль'));
+  }
 
   User.findOne({ email }).select('+password')
     .then((user) => {
@@ -96,7 +123,13 @@ const login = (req, res, next) => {
         const token = jwt.sign({ _id: isVaid._id }, 'some-secret-key', {
           expiresIn: '7d',
         });
-        res.send({ jwt: token });
+        res
+          .cookie('jwt', token, {
+            expires: new Date(Date.now() + 7 * 24 * 3600000),
+            httpOnly: true,
+            sameSite: true,
+          })
+          .send({ message: 'Авторизация прошла успешно' });
       }
     })
     .catch((err) => {
@@ -156,6 +189,7 @@ const updateAvatar = (req, res, next) => {
 
 module.exports = {
   getUsers,
+  getCurrentUser,
   createUser,
   login,
   findUser,
