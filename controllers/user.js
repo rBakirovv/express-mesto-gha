@@ -1,6 +1,6 @@
-const User = require('../models/user');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const User = require('../models/user');
 const ErrorConflict = require('../errors/ErrorConflict');
 const Unauthorized = require('../errors/Unauthorized');
 const ValidationError = require('../errors/ValidationError');
@@ -116,11 +116,11 @@ const login = (req, res, next) => {
       }
       return bcrypt.compare(password, user.password);
     })
-    .then((isVaid) => {
-      if (!isVaid) {
+    .then((user) => {
+      if (!user) {
         throw new Unauthorized('Неккоректный email или пароль');
       } else {
-        const token = jwt.sign({ _id: isVaid._id }, 'some-secret-key', {
+        const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
           expiresIn: '7d',
         });
         res
