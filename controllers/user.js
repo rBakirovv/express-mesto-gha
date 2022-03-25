@@ -4,13 +4,9 @@ const User = require('../models/user');
 const ErrorConflict = require('../errors/ErrorConflict');
 const Unauthorized = require('../errors/Unauthorized');
 const ValidationError = require('../errors/ValidationError');
+const ErrorNotFound = require('../errors/ErrorNotFound');
 
 const SALT_ROUNDS = 10;
-
-const {
-  ERR_BAD_REQUEST,
-  ERR_NOT_FOUND,
-} = require('../errors/errors');
 
 const getUsers = (req, res, next) => {
   User.find({})
@@ -21,19 +17,12 @@ const getUsers = (req, res, next) => {
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new ErrorNotFound('Пользователь не найден');
     })
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные',
-        });
-      }
-      if (err.message === 'NotFound') {
-        res.status(ERR_NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        next(new ValidationError('Переданы некорректные данные'));
       } else {
         next(err);
       }
@@ -43,19 +32,12 @@ const getCurrentUser = (req, res, next) => {
 const findUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new ErrorNotFound('Пользователь не найден');
     })
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные',
-        });
-      }
-      if (err.message === 'NotFound') {
-        res.status(ERR_NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        next(new ValidationError('Переданы некорректные данные'));
       } else {
         next(err);
       }
@@ -72,7 +54,7 @@ const createUser = (req, res, next) => {
   } = req.body;
 
   if (!email || !password) {
-    next(new ValidationError('Неккоректный email или пароль'));
+    throw new ValidationError('Неккоректный email или пароль');
   }
 
   User.findOne({ email }).select('+password')
@@ -98,14 +80,13 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-        res.status(ERR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные в методы создания пользователя',
-        });
+        next(new ValidationError('Переданы некорректные данные в методы создания пользователя'));
       } else {
         next(err);
       }
     });
 };
+
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
@@ -144,18 +125,12 @@ const updateProfile = (req, res, next) => {
     runValidators: true,
   })
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new ErrorNotFound('Пользователь не найден');
     })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные в методы обновления профиля',
-        });
-      } else if (err.message === 'NotFound') {
-        res.status(ERR_NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        next(new ValidationError('Переданы некорректные данные в методы создания пользователя'));
       } else {
         next(err);
       }
@@ -169,18 +144,12 @@ const updateAvatar = (req, res, next) => {
     runValidators: true,
   })
     .orFail(() => {
-      throw new Error('NotFound');
+      throw new ErrorNotFound('Пользователь не найден');
     })
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
-        res.status(ERR_BAD_REQUEST).send({
-          message: 'Переданы некорректные данные в методы обновления аватара',
-        });
-      } else if (err.message === 'NotFound') {
-        res.status(ERR_NOT_FOUND).send({
-          message: 'Пользователь не найден',
-        });
+        next(new ValidationError('Переданы некорректные данные в методы обновления аватара'));
       } else {
         next(err);
       }
