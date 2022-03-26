@@ -9,6 +9,7 @@ const { login, createUser } = require('./controllers/user');
 const errorHandler = require('./middlewares/errorHandler');
 const auth = require('./middlewares/auth');
 const { validateUser } = require('./middlewares/validations');
+const ErrorNotFound = require('./errors/ErrorNotFound');
 
 const { PORT = 3000 } = process.env;
 
@@ -31,8 +32,8 @@ app.use('/', card);
 app.use(errors());
 app.use(errorHandler);
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+app.use((req, res, next) => {
+  next(new ErrorNotFound('Запрашиваемый ресурс не найден'));
 });
 
 app.listen(PORT, () => {

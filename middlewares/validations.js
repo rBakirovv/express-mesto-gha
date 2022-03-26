@@ -20,21 +20,21 @@ const validateUser = celebrate({
 
 const validateUserData = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    about: Joi.string().min(2).max(30),
+    name: Joi.string().min(2).max(30).required(),
+    about: Joi.string().min(2).max(30).required(),
   }),
 });
 
 const validateUserAvatar = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    avatar: Joi.string().custom(validateURL),
+    avatar: Joi.string().required().custom(validateURL),
   }),
 });
 
 const validateUserCard = celebrate({
   [Segments.BODY]: Joi.object().keys({
-    name: Joi.string().min(2).max(30),
-    link: Joi.string().custom(validateURL),
+    name: Joi.string().min(2).max(30).required(),
+    link: Joi.string().required().custom(validateURL),
   }),
 });
 

@@ -26,7 +26,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    minlength: 2,
     validate: {
       validator: isEmail,
       message: (props) => `${props.value} is not a valid email`,
@@ -35,7 +34,6 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 2,
     select: false,
   },
 });

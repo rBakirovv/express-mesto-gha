@@ -25,7 +25,7 @@ const createCard = (req, res, next) => {
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .orFail(() => {
-      throw new ErrorNotFound('Пользователь не найден');
+      throw new ErrorNotFound('Карточка не найдена');
     })
     .then(({ owner }) => {
       if (owner.toString() === req.user._id) {
@@ -33,7 +33,7 @@ const deleteCard = (req, res, next) => {
           res.send(card);
         });
       } else {
-        throw new Forbidden('Карточка не найдена');
+        throw new Forbidden('Недостаточно прав для удаленя карточки');
       }
     })
     .catch((err) => {
@@ -52,7 +52,7 @@ const likeCard = (req, res, next) => {
     { new: true },
   )
     .orFail(() => {
-      throw new ErrorNotFound('Пользователь не найден');
+      throw new ErrorNotFound('Карточка не найдена');
     })
     .then((card) => res.send(card))
     .catch((err) => {
@@ -71,7 +71,7 @@ const dislikeCard = (req, res, next) => {
     { new: true },
   )
     .orFail(() => {
-      throw new ErrorNotFound('Пользователь не найден');
+      throw new ErrorNotFound('Карточка не найдена');
     })
     .then((card) => res.send(card))
     .catch((err) => {
