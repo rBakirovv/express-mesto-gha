@@ -38,9 +38,16 @@ const validateUserCard = celebrate({
   }),
 });
 
+const validateId = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    id: Joi.string().length(24).hex().required(),
+  }),
+});
+
 module.exports = {
   validateUser,
   validateUserData,
   validateUserAvatar,
   validateUserCard,
+  validateId,
 };

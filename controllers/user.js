@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const ErrorConflict = require('../errors/ErrorConflict');
-const Unauthorized = require('../errors/Unauthorized');
 const ValidationError = require('../errors/ValidationError');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 
@@ -19,18 +18,19 @@ const getCurrentUser = (req, res, next) => {
     .orFail(() => {
       throw new ErrorNotFound('Пользователь не найден');
     })
-    .then((user) => res.send({ user }))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные'));
       } else {
         next(err);
       }
-    });
+    })
+    .catch(next);
 };
 
 const findUser = (req, res, next) => {
-  User.findById(req.params.userId)
+  User.findById(req.params.id)
     .orFail(() => {
       throw new ErrorNotFound('Пользователь не найден');
     })
@@ -90,28 +90,18 @@ const createUser = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findOne({ email }).select('+password')
+  User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        throw new Unauthorized('Неккоректный email или пароль');
-      }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((user) => {
-      if (!user) {
-        throw new Unauthorized('Неккоректный email или пароль');
-      } else {
-        const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
-          expiresIn: '7d',
-        });
-        res
-          .cookie('jwt', token, {
-            expires: new Date(Date.now() + 7 * 24 * 3600000),
-            httpOnly: true,
-            sameSite: true,
-          })
-          .send({ message: 'Авторизация прошла успешно' });
-      }
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+        expiresIn: '7d',
+      });
+      res
+        .cookie('jwt', token, {
+          expires: new Date(Date.now() + 7 * 24 * 3600000),
+          httpOnly: true,
+          sameSite: true,
+        })
+        .send({ message: 'Авторизация прошла успешно' });
     })
     .catch((err) => {
       next(err);

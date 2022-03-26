@@ -10,11 +10,12 @@ const {
 const {
   validateUserData,
   validateUserAvatar,
+  validateId,
 } = require('../middlewares/validations');
 
 router.get('/users', getUsers);
 
-router.get('/users/:userId', findUser);
+router.get('/users/:id', validateId, findUser);
 
 router.get('/users/me', getCurrentUser);
 
