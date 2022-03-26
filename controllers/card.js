@@ -29,8 +29,8 @@ const deleteCard = (req, res, next) => {
     })
     .then(({ owner }) => {
       if (owner.toString() === req.user._id) {
-        Card.findByIdAndRemove(req.params.cardId).then((card) => {
-          res.send(card);
+        Card.findByIdAndRemove(req.params.id).then((card) => {
+          res.send({ card });
         });
       } else {
         throw new Forbidden('Недостаточно прав для удаленя карточки');

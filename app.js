@@ -21,20 +21,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.post('/signin', validateUser, login);
 app.post('/signup', validateUser, createUser);
+app.post('/signin', validateUser, login);
 
 app.use(auth);
 
 app.use('/', user);
 app.use('/', card);
 
-app.use(errors());
-app.use(errorHandler);
-
 app.use((req, res, next) => {
   next(new ErrorNotFound('Запрашиваемый ресурс не найден'));
 });
+
+app.use(errors());
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
