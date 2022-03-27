@@ -28,6 +28,22 @@ const findUser = (req, res, next) => {
     });
 };
 
+const getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((user) => res.send({ user }))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    })
+    .catch(next);
+};
+
 const createUser = (req, res, next) => {
   const {
     name,
@@ -123,27 +139,11 @@ const login = (req, res, next) => {
           httpOnly: true,
           sameSite: true,
         })
-        .send({ jwt: 'Авторизация прошла успешно' });
+        .send({ message: 'Авторизация прошла успешно' });
     })
     .catch((err) => {
       next(err);
     });
-};
-
-const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
-    .orFail(() => {
-      throw new ErrorNotFound('Пользователь не найден');
-    })
-    .then((user) => res.send({ user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ValidationError('Переданы некорректные данные'));
-      } else {
-        next(err);
-      }
-    })
-    .catch(next);
 };
 
 module.exports = {
