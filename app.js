@@ -6,6 +6,7 @@ const { errors } = require('celebrate');
 const user = require('./routes/user');
 const card = require('./routes/card');
 const { login, createUser } = require('./controllers/user');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const errorHandler = require('./middlewares/errorHandler');
 const auth = require('./middlewares/auth');
 const { validateUser } = require('./middlewares/validations');
@@ -21,6 +22,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
+app.use(requestLogger);
+
 app.post('/signup', validateUser, createUser);
 app.post('/signin', validateUser, login);
 
@@ -29,11 +32,14 @@ app.use(auth);
 app.use('/', user);
 app.use('/', card);
 
+app.use(errorLogger);
+
+app.use(errors());
+
 app.use((req, res, next) => {
   next(new ErrorNotFound('Запрашиваемый ресурс не найден'));
 });
 
-app.use(errors());
 app.use(errorHandler);
 
 app.listen(PORT, () => {
