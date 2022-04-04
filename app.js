@@ -24,7 +24,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(cors({
-  origin: 'localhost:3000',
+  origin: [
+    'bakirov.students.nomoredomains.work',
+  ],
   credentials: true,
 }));
 
