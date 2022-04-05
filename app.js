@@ -24,13 +24,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(cors({
-  origin: [
-    'bakirov.students.nomoredomains.work',
-  ],
+  origin: 'api.bakirov.students.nomoredomains.work',
   credentials: true,
 }));
 
 app.use(requestLogger);
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
 
 app.post('/signup', validateUser, createUser);
 app.post('/signin', validateUser, login);
