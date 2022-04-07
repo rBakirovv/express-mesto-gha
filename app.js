@@ -6,14 +6,14 @@ const { errors } = require('celebrate');
 const cors = require('cors');
 const user = require('./routes/user');
 const card = require('./routes/card');
-const { login, createUser } = require('./controllers/user');
+const { login, logout, createUser } = require('./controllers/user');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const errorHandler = require('./middlewares/errorHandler');
 const auth = require('./middlewares/auth');
 const { validateUser } = require('./middlewares/validations');
 const ErrorNotFound = require('./errors/ErrorNotFound');
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 
 const app = express();
 
@@ -24,7 +24,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger);
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://api.bakirov.students.nomoredomains.work',
+  credentials: true,
+}));
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -34,6 +37,7 @@ app.get('/crash-test', () => {
 
 app.post('/signup', validateUser, createUser);
 app.post('/signin', validateUser, login);
+app.delete('/signout', logout);
 
 app.use(auth);
 

@@ -146,11 +146,17 @@ const login = (req, res, next) => {
     });
 };
 
+const logout = (req, res, next) => {
+  res.clearCookie('jwt');
+  next();
+};
+
 module.exports = {
   getUsers,
   getCurrentUser,
   createUser,
   login,
+  logout,
   findUser,
   updateProfile,
   updateAvatar,
